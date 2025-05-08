@@ -114,10 +114,11 @@ class Program
                 {
                     foreach (var offset in offsets)
                     {
-                        string preview = Encoding.ASCII.GetString(ExtractContext(regionData, offset, 128)).Replace("\0", ".");
+                        string preview = Encoding.ASCII.GetString(ExtractContext(regionData, offset, 512)).Replace("\0", ".");
                         var patterns = DetectPatterns(preview).ToList();
                         AnsiConsole.MarkupLine($"[green]Match at:[/] [blue]0x{(baseAddr + offset).ToInt64():X}[/] (score: [yellow]{score}[/])");
-                        AnsiConsole.WriteLine($"Context: {preview}");
+                        AnsiConsole.WriteLine("Context:");
+                        AnsiConsole.WriteLine(preview);
                         if (patterns.Any())
                             AnsiConsole.MarkupLine($"[grey]Patterns: {string.Join(", ", patterns)}[/]");
                         Console.WriteLine();

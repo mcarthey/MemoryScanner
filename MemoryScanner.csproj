@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="jsconfig1.json~RF29967019.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
   </ItemGroup>
 
