@@ -3,7 +3,7 @@ $projectKey = "mcarthey_MemoryScanner"
 $org = "mcarthey"
 $token = $env:SONAR_TOKEN
 
-$headers = @{ Authorization = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$token:")) }
+$headers = @{ Authorization = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${token}:")) }
 
 $url = "https://sonarcloud.io/api/issues/search?componentKeys=$projectKey&resolved=false"
 
