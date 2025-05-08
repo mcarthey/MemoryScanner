@@ -1,13 +1,16 @@
 ﻿// Enhanced memory search and structure identification
-using Spectre.Console;
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Spectre.Console;
+
+namespace MemoryScanner;
 
 class Program
 {
-    const int PROCESS_QUERY_INFORMATION = 0x0400;
-    const int PROCESS_VM_READ = 0x0010;
+    const int ProcessQueryInformation = 0x0400;
+    const int ProcessVmRead = 0x0010;
 
     [DllImport("kernel32.dll")]
     static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
@@ -19,10 +22,10 @@ class Program
     static extern bool CloseHandle(IntPtr hObject);
 
     [DllImport("kernel32.dll")]
-    static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
+    static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MemoryBasicInformation lpBuffer, uint dwLength);
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MEMORY_BASIC_INFORMATION
+    public struct MemoryBasicInformation
     {
         public IntPtr BaseAddress;
         public IntPtr AllocationBase;
@@ -39,7 +42,7 @@ class Program
 
         var matchingProcesses = Process.GetProcesses()
             .Where(p => !string.IsNullOrEmpty(p.ProcessName) &&
-                        p.ProcessName.Contains(search, StringComparison.OrdinalIgnoreCase))
+                p.ProcessName.Contains(search, StringComparison.OrdinalIgnoreCase))
             .OrderBy(p => p.ProcessName)
             .ToList();
 
@@ -59,7 +62,7 @@ class Program
         var process = Process.GetProcessById(pid);
         AnsiConsole.MarkupLine($"[blue]Attached to:[/] {process.ProcessName} (PID: {pid})");
 
-        IntPtr processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pid);
+        IntPtr processHandle = OpenProcess(ProcessQueryInformation | ProcessVmRead, false, pid);
         if (processHandle == IntPtr.Zero)
         {
             AnsiConsole.MarkupLine("[red]Failed to open process.[/]");
@@ -74,14 +77,14 @@ class Program
             if (string.IsNullOrEmpty(input)) break;
 
             IntPtr address = IntPtr.Zero;
-            uint mbiSize = (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION));
+            uint mbiSize = (uint)Marshal.SizeOf(typeof(MemoryBasicInformation));
 
-            while (VirtualQueryEx(processHandle, address, out MEMORY_BASIC_INFORMATION mbi, mbiSize) != 0)
+            while (VirtualQueryEx(processHandle, address, out MemoryBasicInformation mbi, mbiSize) != 0)
             {
                 if (mbi.State == 0x1000 && (mbi.Protect & 0x04) != 0)
                 {
                     byte[] buffer = new byte[(long)mbi.RegionSize];
-                    if (ReadProcessMemory(processHandle, mbi.BaseAddress, buffer, buffer.Length, out int bytesRead))
+                    if (ReadProcessMemory(processHandle, mbi.BaseAddress, buffer, buffer.Length, out _))
                     {
                         string bufferText = Encoding.ASCII.GetString(buffer);
                         int start = 0;
